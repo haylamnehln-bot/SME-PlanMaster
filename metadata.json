@@ -1,0 +1,6 @@
+{
+  "name": "SME PlanMaster - Kế hoạch Kinh doanh Năm",
+  "description": "Nền tảng Wizard & Dashboard tương tác xây dựng Kế hoạch Kinh doanh Năm chuẩn hóa cho Doanh nghiệp Nhỏ & Vừa (SME), tích hợp mô hình 5 bước, dự toán tài chính tự động và xuất báo cáo chuyên nghiệp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

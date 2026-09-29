@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SME PlanMaster - Kế Hoạch Kinh Doanh Năm</title>
+  <meta name="description" content="Ứng dụng xây dựng Kế hoạch Kinh doanh Năm bài bản cho Doanh nghiệp Nhỏ và Vừa (SME)">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Hide scrollbar for clean horizontal swipe tabs on mobile */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .no-print { display: none !important; }
+      .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col pb-20 md:pb-6">
+
+  <!-- TOP MOBILE-OPTIMIZED HEADER -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs no-print">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+      <!-- Row 1: Brand & Actions -->
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-xs">
+            🏢
+          </div>
+          <div class="min-w-0">
+            <span class="text-sm sm:text-base font-bold tracking-tight text-slate-900 block truncate">SME PlanMaster</span>
+            <span class="text-[10px] text-slate-400 font-medium block truncate" id="headerCompanyTag">Kế hoạch kinh doanh 2026</span>
+          </div>
+        </div>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <select id="presetSelect" onchange="loadPreset(this.value)" class="text-xs bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 rounded-lg px-2 py-1.5 font-medium cursor-pointer max-w-[130px] sm:max-w-none truncate">
+            <option value="">-- Mẫu SME --</option>
+            <option value="fnb">1. F&B Cà Phê</option>
+            <option value="saas">2. Tech SaaS B2B</option>
+            <option value="retail">3. Bán Lẻ TMĐT</option>
+            <option value="agency">4. Dịch Vụ Agency</option>
+          </select>
+          <button onclick="window.print()" class="px-2.5 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer hidden sm:flex items-center gap-1">
+            <span>In / PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Responsive Segmented Navigation Tabs -->
+      <div class="flex items-center gap-1 mt-2.5 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar">
+        <button id="btnNavWizard" onclick="switchView('wizard')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 transition-colors shrink-0 whitespace-nowrap">
+          5 Bước Kế Hoạch
+        </button>
+        <button id="btnNavDashboard" onclick="switchView('dashboard')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors shrink-0 whitespace-nowrap">
+          Bảng Điều Hành
+        </button>
+        <button id="btnNavReport" onclick="switchView('report')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors shrink-0 whitespace-nowrap">
+          Báo Cáo A4
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE-RESPONSIVE WIZARD STEPPER -->
+  <div id="wizardStepper" class="bg-white border-b border-slate-200 py-2.5 px-3 sm:px-6 no-print shadow-xs sticky top-[89px] sm:top-[97px] z-30">
+    <div class="max-w-7xl mx-auto">
+      <!-- Horizontal Scrollable Step Chips on Mobile, 5-col Grid on Desktop -->
+      <div class="flex sm:grid sm:grid-cols-5 gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar snap-x">
+        <button onclick="goToStep(1)" id="stepTab1" class="snap-start shrink-0 px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950 font-bold transition-all text-left min-w-[125px] sm:min-w-0">
+          <span class="block text-[10px] text-indigo-600 uppercase font-semibold">Bước 1</span>
+          <span class="text-xs truncate block font-bold">Tầm nhìn & OKRs</span>
+        </button>
+        <button onclick="goToStep(2)" id="stepTab2" class="snap-start shrink-0 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 border border-transparent transition-all text-left min-w-[125px] sm:min-w-0">
+          <span class="block text-[10px] text-slate-400 uppercase font-semibold">Bước 2</span>
+          <span class="text-xs truncate block font-medium">SWOT & TOWS</span>
+        </button>
+        <button onclick="goToStep(3)" id="stepTab3" class="snap-start shrink-0 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 border border-transparent transition-all text-left min-w-[125px] sm:min-w-0">
+          <span class="block text-[10px] text-slate-400 uppercase font-semibold">Bước 3</span>
+          <span class="text-xs truncate block font-medium">Marketing 4P</span>
+        </button>
+        <button onclick="goToStep(4)" id="stepTab4" class="snap-start shrink-0 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 border border-transparent transition-all text-left min-w-[125px] sm:min-w-0">
+          <span class="block text-[10px] text-slate-400 uppercase font-semibold">Bước 4</span>
+          <span class="text-xs truncate block font-medium">Kế hoạch Quý</span>
+        </button>
+        <button onclick="goToStep(5)" id="stepTab5" class="snap-start shrink-0 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 border border-transparent transition-all text-left min-w-[125px] sm:min-w-0">
+          <span class="block text-[10px] text-slate-400 uppercase font-semibold">Bước 5</span>
+          <span class="text-xs truncate block font-medium">Dự toán Tài chính</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+
+    <!-- VIEW 1: WIZARD MODE -->
+    <div id="viewWizard" class="space-y-4 sm:space-y-6">
+      
+      <!-- STEP 1 CONTENT -->
+      <div id="stepContent1" class="space-y-4 sm:space-y-6">
+        <!-- Step Header Banner -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider block">Bước 1: Nền tảng định hướng</span>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">Tầm Nhìn, Sứ Mệnh & Bộ Chỉ Tiêu SMART</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Xác lập kim chỉ nam và mục tiêu cốt lõi của doanh nghiệp.</p>
+          </div>
+          <button onclick="goToStep(2)" class="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-white bg-indigo-600 rounded-xl shadow-xs hover:bg-indigo-700 flex items-center justify-center gap-1.5 transition-colors shrink-0">
+            <span>Tiếp: Bước 2 (SWOT)</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+
+        <!-- Enterprise Profile -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">1. Hồ Sơ Doanh Nghiệp</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Tên Doanh Nghiệp *</label>
+              <input type="text" id="inpCompanyName" oninput="updatePlanField('companyName', this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Lĩnh Vực Hoạt Động</label>
+              <input type="text" id="inpIndustry" oninput="updatePlanField('industry', this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Năm Kế Hoạch</label>
+              <input type="number" id="inpPlanningYear" oninput="updatePlanField('planningYear', Number(this.value))" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Vision, Mission & Goals -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
+            <h3 class="font-bold text-slate-900 text-xs sm:text-sm">2. Tầm Nhìn & Sứ Mệnh</h3>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Tầm Nhìn 3-5 Năm (Vision)</label>
+              <textarea id="inpVision" rows="3" oninput="updatePlanField('vision', this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Sứ Mệnh Phục Vụ (Mission)</label>
+              <textarea id="inpMission" rows="3" oninput="updatePlanField('mission', this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
+            <h3 class="font-bold text-slate-900 text-xs sm:text-sm">3. Chỉ Tiêu Trọng Tâm Năm</h3>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Doanh thu mục tiêu (VNĐ)</label>
+              <input type="number" id="inpAnnualRevenue" oninput="updatePlanField('annualTargetRevenue', Number(this.value)); renderFinancials();" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Biên Lợi Nhuận Ròng Kỳ Vọng (%)</label>
+              <input type="number" id="inpAnnualMargin" oninput="updatePlanField('annualTargetNetProfitMargin', Number(this.value));" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-sm focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1">Tuyên ngôn chiến lược năm (Motto)</label>
+              <input type="text" id="inpStrategicSummary" oninput="updatePlanField('strategicSummary', this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 CONTENT (SWOT & TOWS) -->
+      <div id="stepContent2" class="space-y-4 sm:space-y-6 hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider block">Bước 2: Phân tích cạnh tranh</span>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">Ma Trận SWOT & Chiến Lược TOWS</h2>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="goToStep(1)" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold bg-slate-100 rounded-xl text-slate-700">&larr; Bước 1</button>
+            <button onclick="goToStep(3)" class="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl shadow-xs hover:bg-indigo-700">Bước 3 (4P) &rarr;</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
+          <!-- Strengths -->
+          <div class="p-4 bg-white border border-emerald-200 rounded-2xl space-y-2.5">
+            <div class="flex justify-between items-center font-bold text-emerald-800 text-xs sm:text-sm">
+              <span>S - Điểm Mạnh (Strengths)</span>
+              <span class="text-[10px] bg-emerald-100 px-2 py-0.5 rounded font-mono">Nội Lực</span>
+            </div>
+            <div id="listStrengths" class="space-y-1.5"></div>
+          </div>
+
+          <!-- Weaknesses -->
+          <div class="p-4 bg-white border border-rose-200 rounded-2xl space-y-2.5">
+            <div class="flex justify-between items-center font-bold text-rose-800 text-xs sm:text-sm">
+              <span>W - Điểm Yếu (Weaknesses)</span>
+              <span class="text-[10px] bg-rose-100 px-2 py-0.5 rounded font-mono">Rào Cản</span>
+            </div>
+            <div id="listWeaknesses" class="space-y-1.5"></div>
+          </div>
+
+          <!-- Opportunities -->
+          <div class="p-4 bg-white border border-sky-200 rounded-2xl space-y-2.5">
+            <div class="flex justify-between items-center font-bold text-sky-800 text-xs sm:text-sm">
+              <span>O - Cơ Hội (Opportunities)</span>
+              <span class="text-[10px] bg-sky-100 px-2 py-0.5 rounded font-mono">Cơ Hội</span>
+            </div>
+            <div id="listOpportunities" class="space-y-1.5"></div>
+          </div>
+
+          <!-- Threats -->
+          <div class="p-4 bg-white border border-amber-200 rounded-2xl space-y-2.5">
+            <div class="flex justify-between items-center font-bold text-amber-800 text-xs sm:text-sm">
+              <span>T - Thách Thức (Threats)</span>
+              <span class="text-[10px] bg-amber-100 px-2 py-0.5 rounded font-mono">Rủi Ro</span>
+            </div>
+            <div id="listThreats" class="space-y-1.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 CONTENT (Marketing 4P) -->
+      <div id="stepContent3" class="space-y-4 sm:space-y-6 hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider block">Bước 3: Tiếp thị & Bán hàng</span>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">Chiến Lược Marketing Mix 4P</h2>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="goToStep(2)" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold bg-slate-100 rounded-xl text-slate-700">&larr; Bước 2</button>
+            <button onclick="goToStep(4)" class="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl shadow-xs hover:bg-indigo-700">Bước 4 (Quý) &rarr;</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
+          <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
+            <h3 class="font-bold text-slate-900 text-xs sm:text-sm">1. Product (Sản Phẩm & USP)</h3>
+            <textarea id="inp4PProduct" rows="3" oninput="update4PField('product', 'strategyDescription', this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs leading-relaxed"></textarea>
+          </div>
+
+          <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
+            <h3 class="font-bold text-slate-900 text-xs sm:text-sm">2. Price (Giá & Định Vị)</h3>
+            <textarea id="inp4PPrice" rows="3" oninput="update4PField('price', 'strategyDescription', this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs leading-relaxed"></textarea>
+          </div>
+
+          <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
+            <h3 class="font-bold text-slate-900 text-xs sm:text-sm">3. Place (Kênh Phân Phối)</h3>
+            <textarea id="inp4PPlace" rows="3" oninput="update4PField('place', 'strategyDescription', this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs leading-relaxed"></textarea>
+          </div>
+
+          <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-2">
+            <h3 class="font-bold text-slate-900 text-xs sm:text-sm">4. Promotion (Chiêu Thị)</h3>
+            <textarea id="inp4PPromotion" rows="3" oninput="update4PField('promotion', 'keyMessage', this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs leading-relaxed"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 CONTENT (Action Plan) -->
+      <div id="stepContent4" class="space-y-4 sm:space-y-6 hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider block">Bước 4: Thực thi</span>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">Kế Hoạch Hành Động Q1 - Q4</h2>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="goToStep(3)" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold bg-slate-100 rounded-xl text-slate-700">&larr; Bước 3</button>
+            <button onclick="goToStep(5)" class="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl shadow-xs hover:bg-indigo-700">Bước 5 (P&L) &rarr;</button>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+          <!-- Mobile friendly card layout or scrollable table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[500px]">
+              <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] font-bold">
+                <tr>
+                  <th class="p-3">Quý</th>
+                  <th class="p-3">Sáng kiến / Đầu việc</th>
+                  <th class="p-3">Phòng ban</th>
+                  <th class="p-3">Phụ trách</th>
+                  <th class="p-3 text-right">Ngân sách</th>
+                  <th class="p-3">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="tblActionItems" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 CONTENT (Financials & Real-time Charts) -->
+      <div id="stepContent5" class="space-y-4 sm:space-y-6 hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider block">Bước 5: Dự toán tài chính</span>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">Dự Toán P&L & Biểu Đồ Thời Gian Thực</h2>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="goToStep(4)" class="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold bg-slate-100 rounded-xl">&larr; Bước 4</button>
+            <button onclick="switchView('dashboard')" class="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-white bg-slate-900 rounded-xl">Bảng Điều Hành &rarr;</button>
+          </div>
+        </div>
+
+        <!-- 4 KPI CARDS -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          <div class="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
+            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Tổng Doanh Thu</span>
+            <span id="kpiTotalRevenue" class="text-base sm:text-lg font-bold font-mono text-slate-900 tabular-nums">0 VNĐ</span>
+          </div>
+          <div class="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
+            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Lợi Nhuận Gộp</span>
+            <span id="kpiGrossProfit" class="text-base sm:text-lg font-bold font-mono text-emerald-600 tabular-nums">0 VNĐ</span>
+          </div>
+          <div class="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
+            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Tổng Chi Phí OPEX</span>
+            <span id="kpiTotalOpex" class="text-base sm:text-lg font-bold font-mono text-slate-900 tabular-nums">0 VNĐ</span>
+          </div>
+          <div class="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xs">
+            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Lợi Nhuận Ròng</span>
+            <span id="kpiNetProfit" class="text-base sm:text-lg font-bold font-mono text-indigo-600 tabular-nums">0 VNĐ</span>
+          </div>
+        </div>
+
+        <!-- REAL-TIME CHART -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
+            <span>Biểu Đồ Doanh Thu & Lợi Nhuận (4 Quý)</span>
+            <div class="flex gap-3 text-[11px] font-normal text-slate-500">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-indigo-600 rounded-xs inline-block"></span> Doanh thu</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-emerald-500 rounded-xs inline-block"></span> Lợi nhuận</span>
+            </div>
+          </div>
+          
+          <div id="chartContainer" class="grid grid-cols-4 gap-2 sm:gap-4 h-40 sm:h-48 items-end pt-4 pb-2 border-b border-slate-200">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- P&L SPREADSHEET TABLE -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-800">
+            Bảng Kế Hoạch Kết Quả Kinh Doanh (P&L)
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono tabular-nums min-w-[480px]">
+              <thead class="bg-slate-100 font-bold uppercase text-[10px] text-slate-600 font-sans">
+                <tr>
+                  <th class="p-2.5 min-w-[140px]">Chỉ tiêu</th>
+                  <th class="p-2.5 text-right">Q1</th>
+                  <th class="p-2.5 text-right">Q2</th>
+                  <th class="p-2.5 text-right">Q3</th>
+                  <th class="p-2.5 text-right">Q4</th>
+                  <th class="p-2.5 text-right bg-indigo-50 text-indigo-900 font-bold">CẢ NĂM</th>
+                </tr>
+              </thead>
+              <tbody id="tblPnlBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: DASHBOARD MODE -->
+    <div id="viewDashboard" class="space-y-4 sm:space-y-6 hidden">
+      <div class="bg-slate-900 text-white rounded-3xl p-5 sm:p-8 space-y-4 shadow-sm">
+        <span class="text-[11px] text-indigo-400 font-bold uppercase tracking-wider block">Bảng Điều Hành Doanh Nghiệp</span>
+        <h1 id="dashCompanyName" class="text-xl sm:text-3xl font-extrabold tracking-tight">Tên Công Ty</h1>
+        <p id="dashStrategicSummary" class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed"></p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-4 border-t border-slate-800 text-xs font-mono">
+          <div class="p-2 bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans">Doanh Thu Thuần</span>
+            <span id="dashRevenue" class="text-base sm:text-xl font-bold text-white">0 VNĐ</span>
+          </div>
+          <div class="p-2 bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans">Biên Lãi Gộp</span>
+            <span id="dashGrossMargin" class="text-base sm:text-xl font-bold text-emerald-400">0%</span>
+          </div>
+          <div class="p-2 bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans">Chi Phí OPEX</span>
+            <span id="dashOpex" class="text-base sm:text-xl font-bold text-slate-300">0 VNĐ</span>
+          </div>
+          <div class="p-2 bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans">Lợi Nhuận Ròng</span>
+            <span id="dashNetProfit" class="text-base sm:text-xl font-bold text-indigo-400">0 VNĐ</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center pt-2">
+        <button onclick="switchView('wizard')" class="w-full sm:w-auto px-5 py-3 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors">
+          Quay Lại Chỉnh Sửa 5 Bước
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 3: PRINT REPORT MODE -->
+    <div id="viewReport" class="space-y-4 sm:space-y-6 hidden">
+      <div class="no-print flex justify-between items-center bg-white p-3.5 rounded-2xl border border-slate-200">
+        <button onclick="switchView('wizard')" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 rounded-lg text-slate-700">&larr; Quay lại</button>
+        <button onclick="window.print()" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg shadow-xs">In / Lưu File PDF</button>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-12 space-y-6 text-xs text-slate-800 print-break-inside-avoid shadow-xs">
+        <div class="border-b-2 border-slate-900 pb-4">
+          <span class="text-[10px] font-bold uppercase text-indigo-700 tracking-wider">KẾ HOẠCH KINH DOANH THƯỜNG NIÊN</span>
+          <h1 id="repCompanyName" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1"></h1>
+          <p id="repIndustryYear" class="text-slate-500 text-[11px]"></p>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-xs sm:text-sm text-slate-900 border-b pb-1 mb-2">1. TẦM NHÌN & SỨ MỆNH</h3>
+          <p class="leading-relaxed"><strong class="text-slate-900">Tầm nhìn:</strong> <span id="repVision"></span></p>
+          <p class="leading-relaxed mt-1"><strong class="text-slate-900">Sứ mệnh:</strong> <span id="repMission"></span></p>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-xs sm:text-sm text-slate-900 border-b pb-1 mb-2">2. CHỈ TIÊU TÀI CHÍNH TỔNG HỢP</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono">
+            <div class="p-3 bg-slate-50 rounded-lg">Tổng Doanh Thu: <strong id="repRevenue" class="block sm:inline font-bold"></strong></div>
+            <div class="p-3 bg-slate-50 rounded-lg">Tổng Lợi Nhuận Gộp: <strong id="repGross" class="block sm:inline font-bold"></strong></div>
+            <div class="p-3 bg-slate-50 rounded-lg">Lợi Nhuận Ròng: <strong id="repNet" class="block sm:inline font-bold"></strong></div>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-200 grid grid-cols-2 text-center text-xs">
+          <div class="space-y-10">
+            <span class="font-bold text-slate-700">Người Lập</span>
+            <span class="block text-slate-400 text-[10px]">(Ký tên)</span>
+          </div>
+          <div class="space-y-10">
+            <span class="font-bold text-slate-700">Ban Giám Đốc</span>
+            <span class="block text-slate-400 text-[10px]">(Phê duyệt)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MOBILE BOTTOM THUMB BAR (Sticky for 1-handed thumb use) -->
+  <div class="no-print fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 flex items-center justify-between sm:hidden shadow-lg">
+    <button id="mBtnPrev" onclick="stepPrev()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 active:bg-slate-200 rounded-xl flex items-center gap-1">
+      <span>&larr; Lùi</span>
+    </button>
+    <span id="mStepIndicator" class="text-xs font-bold text-indigo-700 font-mono">
+      Bước 1 / 5
+    </span>
+    <button id="mBtnNext" onclick="stepNext()" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 active:bg-indigo-700 rounded-xl flex items-center gap-1 shadow-xs">
+      <span>Tiếp &rarr;</span>
+    </button>
+  </div>
+
+  <!-- STANDALONE SCRIPT -->
+  <script>
+    let currentStep = 1;
+
+    const DEFAULT_PLAN = {
+      companyName: 'Hương Việt Coffee & Bistro',
+      industry: 'F&B & Ẩm Thực',
+      planningYear: 2026,
+      author: 'CEO Nguyễn Văn Minh',
+      vision: 'Trở thành chuỗi cà phê đặc sản và ẩm thực phong cách hiện đại hàng đầu với 5 chi nhánh vào năm 2028.',
+      mission: 'Mang đến trải nghiệm cà phê mộc sạch nguyên bản và không gian kết nối chu đáo.',
+      strategicSummary: 'Mở rộng thêm 2 chi nhánh mới tại khu văn phòng trọng điểm, tối ưu biên gộp lên 66%.',
+      annualTargetRevenue: 18500000000,
+      annualTargetNetProfitMargin: 16.5,
+      swot: {
+        strengths: ['Nguồn hạt Arabica Cầu Đất độc quyền', 'Đánh giá Google Maps 4.7/5 sao với tệp khách trung thành', 'Đội ngũ barista chuẩn SOP phục vụ dưới 7 phút'],
+        weaknesses: ['Chi phí thuê mặt bằng chiếm 15% doanh thu', 'Tỷ lệ biến động nhân sự phục vụ part-time cao'],
+        opportunities: ['Xu hướng khách sẵn sàng chi trả cho Specialty Coffee', 'Thị trường B2B Catering văn phòng tăng 28%/năm'],
+        threats: ['Cạnh tranh gay gắt từ chuỗi lớn và đối thủ mới', 'Giá sữa và bao bì sinh học tăng 8-12%']
+      },
+      marketing4P: {
+        product: { strategyDescription: 'Menu 3 tầng: Đồ uống đặc sản Hero (Cold Brew), Ăn sáng nhanh, và Bữa trưa Bistro.' },
+        price: { strategyDescription: 'Định vị giá tầm trung-cao cấp (48.000 VNĐ - 85.000 VNĐ), combo nâng AOV.' },
+        place: { strategyDescription: 'Tại cửa hàng 55%, Giao hàng trực tuyến 28%, B2B Doanh nghiệp 17%.' },
+        promotion: { keyMessage: 'Hương Vị Nguyên Bản - Nơi Khởi Nguồn Sáng Tạo' }
+      },
+      actionItems: [
+        { quarter: 'Q1', title: 'Thuê mặt bằng chi nhánh số 4 tại Quận 1', dept: 'BOD', pic: 'Minh - CEO', budget: 450000000, status: 'Hoàn thành' },
+        { quarter: 'Q2', title: 'Thi công & khai trương chi nhánh Quận 1', dept: 'Vận hành', pic: 'Tuấn - COO', budget: 850000000, status: 'Đang làm' },
+        { quarter: 'Q3', title: 'Triển khai gói B2B Office Coffee cho 30 công ty', dept: 'Kinh doanh', pic: 'Đức - Sales', budget: 60000000, status: 'Chưa làm' },
+        { quarter: 'Q4', title: 'Khai trương chi nhánh số 5 tại Hà Nội', dept: 'Vận hành', pic: 'Tuấn - COO', budget: 900000000, status: 'Chưa làm' }
+      ],
+      financials: {
+        Q1: { revenue: 3800000000, cogs: 1292000000, opex: 1890000000 },
+        Q2: { revenue: 4400000000, cogs: 1452000000, opex: 2250000000 },
+        Q3: { revenue: 4900000000, cogs: 1568000000, opex: 2220000000 },
+        Q4: { revenue: 5400000000, cogs: 1728000000, opex: 2650000000 }
+      }
+    };
+
+    function sanitizeValue(val) {
+      if (typeof val === 'string') {
+        return val
+          .replace(/&#8363;?/gi, 'VNĐ')
+          .replace(/&amp;#8363;?/gi, 'VNĐ')
+          .replace(/&#183;?/gi, '|')
+          .replace(/&amp;#183;?/gi, '|')
+          .replace(/&middot;?/gi, '|')
+          .replace(/₫/g, 'VNĐ')
+          .replace(/·/g, '|');
+      }
+      if (Array.isArray(val)) {
+        return val.map(sanitizeValue);
+      }
+      if (val && typeof val === 'object') {
+        const out = {};
+        for (const k in val) {
+          out[k] = sanitizeValue(val[k]);
+        }
+        return out;
+      }
+      return val;
+    }
+
+    let activePlan = sanitizeValue(JSON.parse(localStorage.getItem('sme_plan_standalone') || JSON.stringify(DEFAULT_PLAN)));
+
+    function formatVND(amount) {
+      return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' VNĐ';
+    }
+
+    function saveState() {
+      activePlan = sanitizeValue(activePlan);
+      localStorage.setItem('sme_plan_standalone', JSON.stringify(activePlan));
+    }
+
+    function updatePlanField(field, val) {
+      activePlan[field] = val;
+      saveState();
+      syncUI();
+    }
+
+    function update4PField(section, field, val) {
+      if (!activePlan.marketing4P[section]) activePlan.marketing4P[section] = {};
+      activePlan.marketing4P[section][field] = val;
+      saveState();
+    }
+
+    function goToStep(stepNum) {
+      currentStep = stepNum;
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('stepContent' + i).classList.add('hidden');
+        const tab = document.getElementById('stepTab' + i);
+        tab.className = "snap-start shrink-0 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 border border-transparent transition-all text-left min-w-[125px] sm:min-w-0";
+      }
+      document.getElementById('stepContent' + stepNum).classList.remove('hidden');
+      const activeTab = document.getElementById('stepTab' + stepNum);
+      activeTab.className = "snap-start shrink-0 px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950 font-bold transition-all text-left min-w-[125px] sm:min-w-0";
+
+      // Mobile bottom bar updates
+      document.getElementById('mStepIndicator').innerText = 'Bước ' + stepNum + ' / 5';
+      document.getElementById('mBtnPrev').style.visibility = stepNum === 1 ? 'hidden' : 'visible';
+      document.getElementById('mBtnNext').innerText = stepNum === 5 ? 'Xem Tổng Quan' : 'Tiếp →';
+
+      // Scroll active tab into view horizontally on mobile
+      activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function stepNext() {
+      if (currentStep < 5) {
+        goToStep(currentStep + 1);
+      } else {
+        switchView('dashboard');
+      }
+    }
+
+    function stepPrev() {
+      if (currentStep > 1) {
+        goToStep(currentStep - 1);
+      }
+    }
+
+    function switchView(viewName) {
+      document.getElementById('viewWizard').classList.add('hidden');
+      document.getElementById('viewDashboard').classList.add('hidden');
+      document.getElementById('viewReport').classList.add('hidden');
+      document.getElementById('wizardStepper').classList.toggle('hidden', viewName !== 'wizard');
+
+      document.getElementById('btnNavWizard').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors shrink-0 whitespace-nowrap";
+      document.getElementById('btnNavDashboard').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors shrink-0 whitespace-nowrap";
+      document.getElementById('btnNavReport').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors shrink-0 whitespace-nowrap";
+
+      if (viewName === 'wizard') {
+        document.getElementById('viewWizard').classList.remove('hidden');
+        document.getElementById('btnNavWizard').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 transition-colors shrink-0 whitespace-nowrap";
+      } else if (viewName === 'dashboard') {
+        document.getElementById('viewDashboard').classList.remove('hidden');
+        document.getElementById('btnNavDashboard').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 transition-colors shrink-0 whitespace-nowrap";
+      } else if (viewName === 'report') {
+        document.getElementById('viewReport').classList.remove('hidden');
+        document.getElementById('btnNavReport').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 transition-colors shrink-0 whitespace-nowrap";
+      }
+      syncUI();
+    }
+
+    function loadPreset(key) {
+      if (!key) return;
+      if (key === 'fnb') {
+        activePlan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
+      } else if (key === 'saas') {
+        activePlan = {
+          ...DEFAULT_PLAN,
+          companyName: 'NexTech Solutions JSC',
+          industry: 'Công Nghệ B2B SaaS',
+          vision: 'Phần mềm ERP tinh gọn cho 10.000 doanh nghiệp SME vào năm 2030.',
+          annualTargetRevenue: 24000000000,
+          financials: {
+            Q1: { revenue: 4800000000, cogs: 864000000, opex: 2930000000 },
+            Q2: { revenue: 5800000000, cogs: 1044000000, opex: 3280000000 },
+            Q3: { revenue: 6400000000, cogs: 1152000000, opex: 3440000000 },
+            Q4: { revenue: 7000000000, cogs: 1260000000, opex: 3630000000 }
+          }
+        };
+      } else if (key === 'retail') {
+        activePlan = {
+          ...DEFAULT_PLAN,
+          companyName: 'LuxeWear Fashion',
+          industry: 'Bán Lẻ Đa Kênh & E-commerce',
+          vision: 'Thương hiệu thời trang ứng dụng cao cấp hàng đầu cho phụ nữ công sở.',
+          annualTargetRevenue: 32000000000,
+          financials: {
+            Q1: { revenue: 6800000000, cogs: 2720000000, opex: 2760000000 },
+            Q2: { revenue: 7800000000, cogs: 3042000000, opex: 3200000000 },
+            Q3: { revenue: 8200000000, cogs: 3198000000, opex: 3110000000 },
+            Q4: { revenue: 9200000000, cogs: 3588000000, opex: 3470000000 }
+          }
+        };
+      } else if (key === 'agency') {
+        activePlan = {
+          ...DEFAULT_PLAN,
+          companyName: 'Alpha Growth Agency',
+          industry: 'Dịch Vụ Tư Vấn Marketing',
+          vision: 'Đơn vị tư vấn tăng trưởng doanh số uy tín cho doanh nghiệp SME.',
+          annualTargetRevenue: 16800000000,
+          financials: {
+            Q1: { revenue: 3500000000, cogs: 980000000, opex: 1970000000 },
+            Q2: { revenue: 4200000000, cogs: 1176000000, opex: 2180000000 },
+            Q3: { revenue: 4400000000, cogs: 1232000000, opex: 2260000000 },
+            Q4: { revenue: 4700000000, cogs: 1316000000, opex: 2380000000 }
+          }
+        };
+      }
+      saveState();
+      syncUI();
+    }
+
+    function renderFinancials() {
+      const qNames = ['Q1', 'Q2', 'Q3', 'Q4'];
+      let totRev = 0, totCogs = 0, totOpex = 0;
+
+      qNames.forEach(q => {
+        totRev += activePlan.financials[q].revenue;
+        totCogs += activePlan.financials[q].cogs;
+        totOpex += activePlan.financials[q].opex;
+      });
+
+      const totGross = totRev - totCogs;
+      const totNet = totGross - totOpex;
+      const margin = totRev > 0 ? (totNet / totRev * 100).toFixed(1) : 0;
+      const grossMargin = totRev > 0 ? (totGross / totRev * 100).toFixed(1) : 0;
+
+      // Update KPI Cards
+      document.getElementById('kpiTotalRevenue').innerText = formatVND(totRev);
+      document.getElementById('kpiGrossProfit').innerText = formatVND(totGross) + ' (' + grossMargin + '%)';
+      document.getElementById('kpiTotalOpex').innerText = formatVND(totOpex);
+      document.getElementById('kpiNetProfit').innerText = formatVND(totNet) + ' (' + margin + '%)';
+
+      // Update Dashboard & Report
+      document.getElementById('dashRevenue').innerText = formatVND(totRev);
+      document.getElementById('dashGrossMargin').innerText = grossMargin + '%';
+      document.getElementById('dashOpex').innerText = formatVND(totOpex);
+      document.getElementById('dashNetProfit').innerText = formatVND(totNet);
+
+      document.getElementById('repRevenue').innerText = formatVND(totRev);
+      document.getElementById('repGross').innerText = formatVND(totGross) + ' (' + grossMargin + '%)';
+      document.getElementById('repNet').innerText = formatVND(totNet) + ' (' + margin + '%)';
+
+      // Render Realtime SVG Chart
+      const maxRev = Math.max(...qNames.map(q => activePlan.financials[q].revenue), 1);
+      let chartHtml = '';
+      qNames.forEach(q => {
+        const rev = activePlan.financials[q].revenue;
+        const gross = rev - activePlan.financials[q].cogs;
+        const net = gross - activePlan.financials[q].opex;
+        const hRev = Math.max(12, Math.round((rev / maxRev) * 100));
+        const hNet = Math.max(6, Math.round((Math.max(0, net) / maxRev) * 100));
+
+        chartHtml += `
+          <div class="flex flex-col items-center h-full justify-end group">
+            <div class="w-full flex items-end justify-center gap-1 sm:gap-1.5 h-28 sm:h-36">
+              <div class="w-1/2 bg-indigo-600 rounded-t-sm" style="height: ${hRev}%" title="Doanh thu ${q}: ${formatVND(rev)}"></div>
+              <div class="w-1/2 bg-emerald-500 rounded-t-sm" style="height: ${hNet}%" title="Lợi nhuận ${q}: ${formatVND(net)}"></div>
+            </div>
+            <span class="text-[11px] sm:text-xs font-bold font-mono text-slate-800 mt-1.5">${q}</span>
+            <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono">${(rev / 1e9).toFixed(1)}tỷ</span>
+          </div>
+        `;
+      });
+      document.getElementById('chartContainer').innerHTML = chartHtml;
+
+      // Render P&L Table
+      let tblHtml = `
+        <tr class="font-bold text-slate-900">
+          <td class="p-2.5 font-sans">1. Doanh thu thuần</td>
+          ${qNames.map(q => `<td class="p-2.5 text-right">${formatVND(activePlan.financials[q].revenue)}</td>`).join('')}
+          <td class="p-2.5 text-right bg-indigo-50 font-bold">${formatVND(totRev)}</td>
+        </tr>
+        <tr class="text-slate-600">
+          <td class="p-2.5 font-sans">2. Giá vốn (COGS)</td>
+          ${qNames.map(q => `<td class="p-2.5 text-right">${formatVND(activePlan.financials[q].cogs)}</td>`).join('')}
+          <td class="p-2.5 text-right bg-indigo-50">${formatVND(totCogs)}</td>
+        </tr>
+        <tr class="bg-emerald-50 font-bold text-emerald-800">
+          <td class="p-2.5 font-sans">3. Lợi nhuận gộp</td>
+          ${qNames.map(q => `<td class="p-2.5 text-right">${formatVND(activePlan.financials[q].revenue - activePlan.financials[q].cogs)}</td>`).join('')}
+          <td class="p-2.5 text-right bg-emerald-100 font-bold">${formatVND(totGross)}</td>
+        </tr>
+        <tr class="text-slate-600">
+          <td class="p-2.5 font-sans">4. Chi phí OPEX</td>
+          ${qNames.map(q => `<td class="p-2.5 text-right">${formatVND(activePlan.financials[q].opex)}</td>`).join('')}
+          <td class="p-2.5 text-right bg-indigo-50">${formatVND(totOpex)}</td>
+        </tr>
+        <tr class="bg-indigo-50/80 font-bold text-indigo-900 text-xs">
+          <td class="p-2.5 font-sans">5. Lợi nhuận ròng</td>
+          ${qNames.map(q => `<td class="p-2.5 text-right">${formatVND(activePlan.financials[q].revenue - activePlan.financials[q].cogs - activePlan.financials[q].opex)}</td>`).join('')}
+          <td class="p-2.5 text-right bg-indigo-100 text-indigo-950 font-extrabold">${formatVND(totNet)}</td>
+        </tr>
+      `;
+      document.getElementById('tblPnlBody').innerHTML = tblHtml;
+    }
+
+    function syncUI() {
+      // Step 1 Form
+      document.getElementById('headerCompanyTag').innerText = `${activePlan.companyName} (${activePlan.planningYear})`;
+      document.getElementById('inpCompanyName').value = activePlan.companyName || '';
+      document.getElementById('inpIndustry').value = activePlan.industry || '';
+      document.getElementById('inpPlanningYear').value = activePlan.planningYear || 2026;
+      document.getElementById('inpVision').value = activePlan.vision || '';
+      document.getElementById('inpMission').value = activePlan.mission || '';
+      document.getElementById('inpAnnualRevenue').value = activePlan.annualTargetRevenue || 0;
+      document.getElementById('inpAnnualMargin').value = activePlan.annualTargetNetProfitMargin || 0;
+      document.getElementById('inpStrategicSummary').value = activePlan.strategicSummary || '';
+
+      // Step 2 SWOT
+      document.getElementById('listStrengths').innerHTML = activePlan.swot.strengths.map(s => `<div class="p-2 bg-emerald-50 rounded-lg text-slate-800 leading-snug">• ${s}</div>`).join('');
+      document.getElementById('listWeaknesses').innerHTML = activePlan.swot.weaknesses.map(s => `<div class="p-2 bg-rose-50 rounded-lg text-slate-800 leading-snug">• ${s}</div>`).join('');
+      document.getElementById('listOpportunities').innerHTML = activePlan.swot.opportunities.map(s => `<div class="p-2 bg-sky-50 rounded-lg text-slate-800 leading-snug">• ${s}</div>`).join('');
+      document.getElementById('listThreats').innerHTML = activePlan.swot.threats.map(s => `<div class="p-2 bg-amber-50 rounded-lg text-slate-800 leading-snug">• ${s}</div>`).join('');
+
+      // Step 3 4P
+      document.getElementById('inp4PProduct').value = activePlan.marketing4P.product?.strategyDescription || '';
+      document.getElementById('inp4PPrice').value = activePlan.marketing4P.price?.strategyDescription || '';
+      document.getElementById('inp4PPlace').value = activePlan.marketing4P.place?.strategyDescription || '';
+      document.getElementById('inp4PPromotion').value = activePlan.marketing4P.promotion?.keyMessage || '';
+
+      // Step 4 Actions
+      document.getElementById('tblActionItems').innerHTML = activePlan.actionItems.map(a => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-2.5 font-mono font-bold text-indigo-700">${a.quarter}</td>
+          <td class="p-2.5 font-medium text-slate-900">${a.title}</td>
+          <td class="p-2.5 text-slate-600">${a.dept}</td>
+          <td class="p-2.5 text-slate-600">${a.pic}</td>
+          <td class="p-2.5 text-right font-mono">${formatVND(a.budget)}</td>
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800">${a.status}</span></td>
+        </tr>
+      `).join('');
+
+      // Dashboard
+      document.getElementById('dashCompanyName').innerText = activePlan.companyName;
+      document.getElementById('dashStrategicSummary').innerText = `"${activePlan.strategicSummary || activePlan.vision}"`;
+
+      // Report
+      document.getElementById('repCompanyName').innerText = activePlan.companyName;
+      document.getElementById('repIndustryYear').innerText = `Lĩnh vực: ${activePlan.industry} | Năm: ${activePlan.planningYear}`;
+      document.getElementById('repVision').innerText = activePlan.vision;
+      document.getElementById('repMission').innerText = activePlan.mission;
+
+      renderFinancials();
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      syncUI();
+      goToStep(1);
+    });
+  </script>
+</body>
+</html>
